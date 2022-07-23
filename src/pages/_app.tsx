@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import "../common/styles/globals.css";
 import React from "react";
+import { SessionProvider } from "next-auth/react";
 import { withTRPC } from "@trpc/next";
 import type { AppProps } from "next/app";
 import { AppContextProvider } from "../common/context/appContext";
@@ -11,7 +12,9 @@ const App = ({ Component, pageProps }: AppProps): JSX.Element => {
   const TypedComponent = Component as unknown as React.FC;
   return (
     <AppContextProvider>
-      <TypedComponent {...pageProps} />
+      <SessionProvider session={pageProps.session}>
+        <TypedComponent {...pageProps} />
+      </SessionProvider>
     </AppContextProvider>
   );
 };
