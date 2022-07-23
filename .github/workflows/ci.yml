@@ -15,17 +15,16 @@ jobs:
         with:
           persist-credentials: false
       - name: Setup NodeJS
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: '16.x'
-          cache: 'npm'
-      - run: git config --global url."https://${{ secrets.GIT_TOKEN }}@github.com/".insteadOf ssh://git@github.com/
+          cache: 'yarn'
 
       - name: Install Deps
         run: yarn
       # - name: Run tests
       #   run: yarn test
       - name: lint
-        run: yarn build
+        run: yarn lint
       - name: build
         run: yarn build
