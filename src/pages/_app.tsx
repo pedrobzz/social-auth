@@ -2,8 +2,8 @@
 import { withTRPC } from "@trpc/next";
 import type { AppProps } from "next/app";
 import React from "react";
+import { AppContextProvider } from "../common/context/appContext";
 
-import { AppContextProvider } from "../application/common/context/appContext";
 import { AppRouter } from "./api/trpc/[trpc]";
 
 const App = ({ Component, pageProps }: AppProps): JSX.Element => {

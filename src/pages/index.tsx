@@ -1,7 +1,6 @@
 import React, { useContext, useState } from "react";
-import { Title } from "../application/common/components/Title";
-import AppContext from "../application/common/context/appContext";
-import { useTRCP } from "../application/common/hooks/useTRCP";
+import AppContext from "../common/context/appContext";
+import { useTRCP } from "../common/hooks/useTRCP";
 
 const Home = (): JSX.Element => {
   const [name, setName] = useState("");
@@ -10,7 +9,6 @@ const Home = (): JSX.Element => {
   const hello = trpc.useQuery(["user.hello", name]);
   return (
     <>
-      <Title>My page</Title>
       <h3>Context Name: {ctx.name}</h3>
       <h3>
         Hello, My name is:{" "}
