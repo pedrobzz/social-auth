@@ -4,7 +4,9 @@
     "dev": "next",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "pscale:dev": "pscale connect social-auth dev --port 3309",
+    "p:studio": "npx prisma studio"
   },
   "dependencies": {
     "@prisma/client": "^4.1.0",
