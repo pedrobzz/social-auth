@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import "../common/styles/globals.css";
+import React from "react";
 import { withTRPC } from "@trpc/next";
 import type { AppProps } from "next/app";
-import React from "react";
 import { AppContextProvider } from "../common/context/appContext";
 
 import { AppRouter } from "./api/trpc/[trpc]";
-
 const App = ({ Component, pageProps }: AppProps): JSX.Element => {
   // https://stackoverflow.com/questions/71809903/next-js-component-cannot-be-used-as-a-jsx-component
   const TypedComponent = Component as unknown as React.FC;

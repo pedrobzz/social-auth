@@ -9,7 +9,7 @@ const Home = (): JSX.Element => {
   const hello = trpc.useQuery(["user.hello", name]);
   return (
     <>
-      <h3>Context Name: {ctx.name}</h3>
+      <h3 className="text-red-400">Context Name: {ctx.name}</h3>
       <h3>
         Hello, My name is:{" "}
         <input
