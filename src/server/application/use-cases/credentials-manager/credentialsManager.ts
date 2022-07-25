@@ -1,10 +1,10 @@
 import { hash } from "argon2";
 import { BaseServerResponse } from "../../../domain/baseResponse";
 import { UserRepositoryModel } from "../../../domain/repositories/userRepository";
-export class CreateUserViaCredentials {
+export class CredentialsManager {
   constructor(private readonly userRepository: UserRepositoryModel) {}
 
-  async execute({
+  async createUser({
     name,
     email,
     password,
@@ -36,5 +36,32 @@ export class CreateUserViaCredentials {
     });
 
     return newUser;
+  }
+
+  async loginUser({
+    email,
+    password,
+  }: {
+    email: string;
+    password: string;
+  }): Promise<BaseServerResponse<{ id: string; name: string; email: string }>> {
+    const user = await this.userRepository.getUserByEmail(email);
+    if (user.status === 404 || !user.data) {
+      return {
+        status: 400,
+        message: "Invalid Username or Password",
+      };
+    }
+    const isPasswordCorrect = await this.userRepository.checkUserPassword({
+      email,
+      password,
+    });
+    if (!isPasswordCorrect || isPasswordCorrect.status !== 200) {
+      return {
+        status: 400,
+        message: "Invalid Username or Password",
+      };
+    }
+    return { ...user, message: "User logged in successfully" };
   }
 }

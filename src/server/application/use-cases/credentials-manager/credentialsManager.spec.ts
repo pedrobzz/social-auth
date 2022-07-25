@@ -3,7 +3,8 @@
 import { UserRepositoryModel } from "../../../domain/repositories/userRepository";
 import { BaseServerResponse } from "../../../domain/baseResponse";
 import { User } from "@prisma/client";
-import { CreateUserViaCredentials } from "./createUserViaCredentials";
+import { CredentialsManager } from "./credentialsManager";
+import { verify } from "argon2";
 
 class UserRepositoryMock implements UserRepositoryModel {
   users: User[] = [];
@@ -71,21 +72,47 @@ class UserRepositoryMock implements UserRepositoryModel {
       });
     });
   }
+  async checkUserPassword(user: {
+    email: string;
+    password: string;
+  }): Promise<BaseServerResponse<Record<string, unknown>>> {
+    const userExists = this.users.find(u => u.email === user.email);
+    if (userExists) {
+      if (
+        userExists.password &&
+        (await verify(userExists.password, user.password))
+      ) {
+        return {
+          status: 200,
+        };
+      } else {
+        return {
+          status: 401,
+          message: "Wrong password",
+        };
+      }
+    } else {
+      return {
+        status: 404,
+        message: "User with this Email not found",
+      };
+    }
+  }
 }
 
 const makeSUT = (): {
-  sut: CreateUserViaCredentials;
+  sut: CredentialsManager;
   userRepository: UserRepositoryMock;
 } => {
   const userRepository = new UserRepositoryMock();
-  const sut = new CreateUserViaCredentials(userRepository);
+  const sut = new CredentialsManager(userRepository);
   return { sut, userRepository };
 };
 
-describe("Create User Using Credentials", () => {
-  it("Should be able to Create a User", async () => {
+describe("Credentials Manager", () => {
+  it("createUser - Should be able to Create a User", async () => {
     const { sut, userRepository } = makeSUT();
-    const result = await sut.execute({
+    const result = await sut.createUser({
       name: "John Doe",
       email: "john@doe.dev",
       password: "12345",
@@ -98,19 +125,62 @@ describe("Create User Using Credentials", () => {
     });
   });
 
-  it("Should not be able to Create a User with an existing Email", async () => {
+  it("createUser - Should not be able to Create a User with an existing Email", async () => {
     const { sut, userRepository } = makeSUT();
-    await sut.execute({
+    await sut.createUser({
       name: "John Doe",
       email: "john@doe.dev",
       password: "12345",
     });
-    const result = await sut.execute({
+    const result = await sut.createUser({
       name: "John Doe",
       email: "john@doe.dev",
       password: "12345",
     });
     expect(result.status).toBe(400);
     expect(result.message).toBe("User with this Email already exists");
+  });
+
+  it("loginUser - Should return 'Invalid Username or Password' if the user does not exist", async () => {
+    const { sut, userRepository } = makeSUT();
+    const result = await sut.loginUser({
+      email: "test@test.dev",
+      password: "12345",
+    });
+    expect(result.status).toBe(400);
+    expect(result.message).toBe("Invalid Username or Password");
+  });
+
+  it("loginUser - Should return 'Invalid Username or Password' if the password is wrong", async () => {
+    const { sut, userRepository } = makeSUT();
+    await sut.createUser({
+      name: "John Doe",
+      email: "test@test.dev",
+      password: "12345",
+    });
+    const result = await sut.loginUser({
+      email: "John Doe",
+      password: "123456",
+    });
+    expect(result.status).toBe(400);
+    expect(result.message).toBe("Invalid Username or Password");
+  });
+
+  it("loginUser - Should return 200, user and 'User logged in successfully' if success", async () => {
+    const { sut, userRepository } = makeSUT();
+    const user = {
+      name: "John Doe",
+      email: "john@doe.dev",
+      password: "12345",
+    };
+    await sut.createUser(user);
+    const result = await sut.loginUser({
+      email: user.email,
+      password: user.password,
+    });
+    expect(result.status).toBe(200);
+    expect(result.data?.email).toEqual(user.email);
+    expect(result.data?.name).toEqual(user.name);
+    expect(result.message).toEqual("User logged in successfully");
   });
 });

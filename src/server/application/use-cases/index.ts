@@ -1,1 +1,1 @@
-export * from "./create-user-via-credentials";
+export * from "./credentials-manager";
