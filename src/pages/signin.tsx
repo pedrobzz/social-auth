@@ -53,13 +53,15 @@ export default function SignIn({
       </div>
       <div className="my-5 flex flex-col gap-4">
         {providers &&
-          Object.values(providers).map((provider, i) => (
-            <ProviderContainer
-              key={provider.name}
-              provider={provider}
-              gradientDirection={i % 2 === 0 ? "lr" : "rl"}
-            />
-          ))}
+          Object.values(providers)
+            .filter(p => p.type !== "credentials")
+            .map((provider, i) => (
+              <ProviderContainer
+                key={provider.name}
+                provider={provider}
+                gradientDirection={i % 2 === 0 ? "lr" : "rl"}
+              />
+            ))}
       </div>
     </div>
   );
