@@ -16,4 +16,8 @@ export interface UserRepositoryModel {
     password: string;
     email: string;
   }): Promise<BaseServerResponse<{ id: string; name: string; email: string }>>;
+  checkUserPassword(user: {
+    email: string;
+    password: string;
+  }): Promise<BaseServerResponse>;
 }

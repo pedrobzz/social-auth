@@ -1,7 +1,7 @@
 import { BaseServerResponse } from "../../domain/baseResponse";
 import { UserRepositoryModel } from "../../domain/repositories/userRepository";
 import { getPrismaClient } from "../factories/getPrismaClient";
-
+import { verify } from "argon2";
 export class UserRepository implements UserRepositoryModel {
   client = getPrismaClient();
   async getUserById(
@@ -93,5 +93,33 @@ export class UserRepository implements UserRepositoryModel {
         email: newUser.email,
       },
     };
+  }
+  async checkUserPassword(user: {
+    email: string;
+    password: string;
+  }): Promise<BaseServerResponse<Record<string, unknown>>> {
+    const userExists = await this.client.user.findFirst({
+      where: { email: user.email },
+    });
+    if (userExists) {
+      if (
+        userExists.password &&
+        (await verify(userExists.password, user.password))
+      ) {
+        return {
+          status: 200,
+        };
+      } else {
+        return {
+          status: 401,
+          message: "Wrong password",
+        };
+      }
+    } else {
+      return {
+        status: 404,
+        message: "User with this Email not found",
+      };
+    }
   }
 }
