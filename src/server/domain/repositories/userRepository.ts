@@ -3,7 +3,7 @@ import { BaseServerResponse } from "../baseResponse";
 
 export interface UserRepositoryModel {
   getUserById(
-    id: number,
+    id: string,
   ): Promise<BaseServerResponse<{ id: string; name: string; email: string }>>;
   getUserByEmail(
     email: string,
