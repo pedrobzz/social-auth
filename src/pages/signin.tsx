@@ -18,6 +18,7 @@ export default function SignIn({
   providers: Awaited<ReturnType<typeof getProviders>>;
 }): JSX.Element {
   const router = useRouter();
+  const redirect = router.query.redirect as string | undefined;
   const [signInForm, dispatch] = useReducer(
     (
       state: { email: string; password: string },
@@ -64,6 +65,7 @@ export default function SignIn({
               });
               if (response?.error)
                 return toast.error("Login ou senha Invalidos");
+              if (redirect) return router.push(redirect);
               return response?.url ? router.push(response.url) : router.back();
             }}
           >
