@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import NextAuth from "next-auth";
+import NextAuth, { NextAuthOptions } from "next-auth";
 import GitHubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
@@ -9,8 +9,7 @@ import { PrismaClient } from "@prisma/client";
 import { makeCredentialsManager } from "../../../server/application/factories/makeCredentialsManager";
 
 const prisma = new PrismaClient();
-
-export default NextAuth({
+export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   secret: "supersecretstring",
   providers: [
@@ -64,4 +63,6 @@ export default NextAuth({
   pages: {
     signIn: "/signin",
   },
-});
+};
+
+export default NextAuth(authOptions);
