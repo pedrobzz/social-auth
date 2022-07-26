@@ -12,6 +12,7 @@ const prisma = new PrismaClient();
 
 export default NextAuth({
   adapter: PrismaAdapter(prisma),
+  secret: "supersecretstring",
   providers: [
     GitHubProvider({
       clientId: process.env.GITHUB_ID!,
@@ -29,16 +30,16 @@ export default NextAuth({
       // e.g. domain, username, password, 2FA token, etc.
       // You can pass any HTML attribute to the <input> tag through the object.
       credentials: {
-        username: { label: "Username", type: "text", placeholder: "jsmith" },
+        email: { label: "Email", type: "text", placeholder: "jsmith" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials, req) {
-        if (!credentials?.password || !credentials?.username) {
+        if (!credentials?.password || !credentials?.email) {
           return null;
         }
         const credentialsManager = makeCredentialsManager();
         const userResponse = await credentialsManager.loginUser({
-          email: credentials!.username,
+          email: credentials!.email,
           password: credentials!.password,
         });
 
@@ -57,6 +58,9 @@ export default NextAuth({
       },
     }),
   ],
+  session: {
+    strategy: "jwt",
+  },
   pages: {
     signIn: "/signin",
   },
