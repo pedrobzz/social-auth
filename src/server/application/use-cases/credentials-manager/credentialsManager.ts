@@ -44,7 +44,14 @@ export class CredentialsManager {
   }: {
     email: string;
     password: string;
-  }): Promise<BaseServerResponse<{ id: string; name: string; email: string }>> {
+  }): Promise<
+    BaseServerResponse<{
+      id: string;
+      name: string;
+      email: string;
+      username: string | null;
+    }>
+  > {
     const user = await this.userRepository.getUserByEmail(email);
     if (user.status === 404 || !user.data) {
       return {
@@ -63,5 +70,41 @@ export class CredentialsManager {
       };
     }
     return { ...user, message: "User logged in successfully" };
+  }
+
+  async changeUsername({
+    id,
+    newUsername,
+  }: {
+    id: string;
+    newUsername: string;
+  }): Promise<
+    BaseServerResponse<{
+      id: string;
+      name: string;
+      email: string;
+      username: string | null;
+    }>
+  > {
+    const user = await this.userRepository.getUserById(id);
+    if (user.status === 404 || !user.data) {
+      return {
+        status: 404,
+        message: "User with this ID not found",
+      };
+    }
+    const userByUsername = await this.userRepository.getUserByUsername(
+      newUsername,
+    );
+    if (userByUsername.status !== 404) {
+      return {
+        status: 400,
+        message: "User with this Username already exists",
+      };
+    }
+    const updatedUser = await this.userRepository.updateUser(id, {
+      username: newUsername,
+    });
+    return updatedUser;
   }
 }
