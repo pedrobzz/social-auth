@@ -7,6 +7,7 @@ import type { AppProps } from "next/app";
 import { AppContextProvider } from "../common/context/appContext";
 
 import { AppRouter } from "./api/trpc/[trpc]";
+import { Toaster } from "react-hot-toast";
 const App = ({ Component, pageProps }: AppProps): JSX.Element => {
   // https://stackoverflow.com/questions/71809903/next-js-component-cannot-be-used-as-a-jsx-component
   const TypedComponent = Component as unknown as React.FC;
@@ -14,6 +15,7 @@ const App = ({ Component, pageProps }: AppProps): JSX.Element => {
     <AppContextProvider>
       <SessionProvider session={pageProps.session}>
         <TypedComponent {...pageProps} />
+        <Toaster />
       </SessionProvider>
     </AppContextProvider>
   );
