@@ -9,6 +9,8 @@ import Link from "next/link";
 import { useTRPC } from "../common/hooks";
 import toast from "react-hot-toast";
 import ProviderContainer from "../common/components/ProviderContent";
+import { unstable_getServerSession } from "next-auth";
+import { authOptions } from "./api/auth/[...nextauth]";
 
 export default function SignIn({
   providers,
@@ -123,6 +125,16 @@ export default function SignIn({
 }
 
 export const getServerSideProps: GetServerSideProps = async context => {
+  const session = await unstable_getServerSession(
+    context.req,
+    context.res,
+    authOptions,
+  );
+  if (session) {
+    context.res.statusCode = 302;
+    context.res.setHeader("Location", "/");
+    return { props: {} };
+  }
   const providers = await getProviders();
   return {
     props: { providers },

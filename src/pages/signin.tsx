@@ -64,7 +64,7 @@ export default function SignIn({
               });
               if (response?.error)
                 return toast.error("Login ou senha Invalidos");
-              return router.back();
+              return response?.url ? router.push(response.url) : router.back();
             }}
           >
             <Input
