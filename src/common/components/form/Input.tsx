@@ -7,6 +7,7 @@ const Input = ({
   onChange,
   required,
   type,
+  error,
 }: {
   name: string;
   className?: string;
@@ -14,6 +15,7 @@ const Input = ({
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   required?: boolean;
   type?: InputHTMLAttributes<HTMLInputElement>["type"];
+  error?: string;
 }): JSX.Element => {
   const [isFocused, setFocused] = useState(false);
   const [value, setValue] = useState("");
@@ -22,7 +24,7 @@ const Input = ({
       <p
         className={`transition-all absolute left-1 text-slate-400 ${
           !isFocused && !value ? "text-lg top-4" : "top-1 text-xs"
-        } pointer-events-none`}
+        } pointer-events-none after:content-['*'] after:text-red-600`}
       >
         {name}
       </p>
@@ -35,13 +37,16 @@ const Input = ({
           if (onChange) onChange(e);
         }}
         {...inputProps}
-        className={`pb-0 pt-5 pl-1 border-b border-slate-400 focus:border-blue-600 focus:outline-none bg-transparent w-full ${inputProps?.className}`}
+        className={`pb-0 pt-5 pl-1 border-b border-slate-400 focus:border-blue-600 focus:outline-none bg-transparent w-full ${
+          inputProps?.className
+        } ${error ? "border-red-600" : ""}`}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         placeholder=""
         required={required}
         type={type}
       />
+      {error && <p className="text-red-600 text-xs">{error}</p>}
     </div>
   );
 };
