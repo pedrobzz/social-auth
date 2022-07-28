@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import NextAuth from "next-auth";
+import NextAuth, { NextAuthOptions } from "next-auth";
 import GitHubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
@@ -9,10 +9,21 @@ import { PrismaClient } from "@prisma/client";
 import { makeCredentialsManager } from "../../../server/application/factories/makeCredentialsManager";
 
 const prisma = new PrismaClient();
-
-export default NextAuth({
+export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   secret: "supersecretstring",
+  callbacks: {
+    jwt: async ({ token, user, account, profile, isNewUser }) => {
+      if (user) {
+        token.id = user.id;
+      }
+      return Promise.resolve(token);
+    },
+    session: async ({ session, token }) => {
+      session.user.id = token.id as string;
+      return Promise.resolve(session);
+    },
+  },
   providers: [
     GitHubProvider({
       clientId: process.env.GITHUB_ID!,
@@ -43,11 +54,13 @@ export default NextAuth({
           password: credentials!.password,
         });
 
-        if (userResponse.status === 200) {
+        if (userResponse.status === 200 && userResponse.data) {
+          console.log(userResponse.data);
           return {
-            name: userResponse.data!.name,
-            email: userResponse.data!.email,
-            id: userResponse.data!.id,
+            name: userResponse.data.name,
+            email: userResponse.data.email,
+            username: userResponse.data.username,
+            id: userResponse.data.id,
           };
         } else {
           // If you return null then an error will be displayed advising the user to check their details.
@@ -64,4 +77,6 @@ export default NextAuth({
   pages: {
     signIn: "/signin",
   },
-});
+};
+
+export default NextAuth(authOptions);

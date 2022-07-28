@@ -1,6 +1,6 @@
 import React, { useContext, useState } from "react";
 import AppContext from "../common/context/appContext";
-import { useTRPC } from "../common/hooks/useTRPC";
+
 import { useSession, signIn, signOut } from "next-auth/react";
 
 const Home = (): JSX.Element => {
