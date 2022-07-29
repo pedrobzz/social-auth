@@ -1,4 +1,5 @@
 import { hash } from "argon2";
+import { z } from "zod";
 import { BaseServerResponse } from "../../../domain/baseResponse";
 import { UserRepositoryModel } from "../../../domain/repositories/userRepository";
 export class CredentialsManager {
@@ -13,6 +14,12 @@ export class CredentialsManager {
     password: string;
     email: string;
   }): Promise<BaseServerResponse<{ id: string; name: string; email: string }>> {
+    if (!z.string().email().safeParse(email).success) {
+      return {
+        status: 400,
+        message: "Invalid Email",
+      };
+    }
     const user = await this.userRepository.getUserByEmail(email);
     if (user.status !== 404) {
       return {
@@ -50,6 +57,7 @@ export class CredentialsManager {
       name: string;
       email: string;
       username: string | null;
+      image: string | null;
     }>
   > {
     const user = await this.userRepository.getUserByEmail(email);

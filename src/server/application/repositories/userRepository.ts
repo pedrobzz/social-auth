@@ -3,6 +3,7 @@ import { UserRepositoryModel } from "../../domain/repositories/userRepository";
 import { getPrismaClient } from "../factories/getPrismaClient";
 import { verify } from "argon2";
 import { RequireAtLeastOne } from "../../domain/utils";
+import { z } from "zod";
 export class UserRepository implements UserRepositoryModel {
   client = getPrismaClient();
 
@@ -12,6 +13,7 @@ export class UserRepository implements UserRepositoryModel {
       name: string;
       email: string;
       username: string | null;
+      image: string | null;
     }>
   > {
     const user = await this.client.user.findFirst({ where: { id } });
@@ -23,6 +25,7 @@ export class UserRepository implements UserRepositoryModel {
           name: user.name,
           email: user.email,
           username: user.username,
+          image: user.image,
         },
       };
     } else {
@@ -39,6 +42,7 @@ export class UserRepository implements UserRepositoryModel {
       name: string;
       email: string;
       username: string | null;
+      image: string | null;
     }>
   > {
     const user = await this.client.user.findFirst({ where: { email } });
@@ -50,6 +54,7 @@ export class UserRepository implements UserRepositoryModel {
           name: user.name,
           email: user.email,
           username: user.username,
+          image: user.image,
         },
       };
     } else {
@@ -66,6 +71,7 @@ export class UserRepository implements UserRepositoryModel {
       name: string;
       email: string;
       username: string | null;
+      image: string | null;
     }>
   > {
     const user = await this.client.user.findFirst({ where: { username } });
@@ -77,6 +83,7 @@ export class UserRepository implements UserRepositoryModel {
           name: user.name,
           email: user.email,
           username: user.username,
+          image: user.image,
         },
       };
     } else {
@@ -97,8 +104,15 @@ export class UserRepository implements UserRepositoryModel {
       name: string;
       email: string;
       username: string | null;
+      image: string | null;
     }>
   > {
+    if (!z.string().email().safeParse(user.email).success) {
+      return {
+        status: 400,
+        message: "Invalid Email",
+      };
+    }
     const userExists = await this.client.user.findFirst({
       where: { email: user.email },
     });
@@ -108,11 +122,15 @@ export class UserRepository implements UserRepositoryModel {
         message: "User with this Email already exists",
       };
     }
+    const emailSplitted = user.email.split("@");
     const newUser = await this.client.user.create({
       data: {
         email: user.email,
         name: user.name,
         password: user.password,
+        image: `https://avatars.dicebear.com/api/micah/${emailSplitted[0]}%40${
+          emailSplitted[1].split(".")[0]
+        }.svg`,
       },
     });
     return {
@@ -122,6 +140,7 @@ export class UserRepository implements UserRepositoryModel {
         name: newUser.name,
         email: newUser.email,
         username: newUser.username,
+        image: newUser.image,
       },
     };
   }
@@ -173,7 +192,8 @@ export class UserRepository implements UserRepositoryModel {
       id: string;
       name: string;
       email: string;
-      username: string | null;
+      username: string;
+      image: string | null;
     }>
   > {
     const updateResponse = await this.client.user.update({
@@ -193,6 +213,7 @@ export class UserRepository implements UserRepositoryModel {
         name: updateResponse?.name,
         email: updateResponse?.email,
         username: updateResponse?.username as string,
+        image: updateResponse?.image,
       },
     };
   }

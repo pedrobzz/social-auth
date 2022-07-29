@@ -10,6 +10,7 @@ export interface UserRepositoryModel {
       name: string;
       email: string;
       username: string | null;
+      image: string | null;
     }>
   >;
 
@@ -19,6 +20,7 @@ export interface UserRepositoryModel {
       name: string;
       email: string;
       username: string | null;
+      image: string | null;
     }>
   >;
 
@@ -28,6 +30,7 @@ export interface UserRepositoryModel {
       name: string;
       email: string;
       username: string | null;
+      image: string | null;
     }>
   >;
 
@@ -41,6 +44,7 @@ export interface UserRepositoryModel {
       name: string;
       email: string;
       username: string | null;
+      image: string | null;
     }>
   >;
 
@@ -65,6 +69,7 @@ export interface UserRepositoryModel {
       name: string;
       email: string;
       username: string | null;
+      image: string | null;
     }>
   >;
 }

@@ -61,6 +61,7 @@ export const authOptions: NextAuthOptions = {
             email: userResponse.data.email,
             username: userResponse.data.username,
             id: userResponse.data.id,
+            image: userResponse.data.image,
           };
         } else {
           // If you return null then an error will be displayed advising the user to check their details.

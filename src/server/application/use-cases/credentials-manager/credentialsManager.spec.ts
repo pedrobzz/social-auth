@@ -7,6 +7,7 @@ import { User } from "@prisma/client";
 import { CredentialsManager } from "./credentialsManager";
 import { verify } from "argon2";
 import { RequireAtLeastOne } from "../../../domain/utils";
+import { z } from "zod";
 
 class UserRepositoryMock implements UserRepositoryModel {
   users: User[] = [];
@@ -16,6 +17,7 @@ class UserRepositoryMock implements UserRepositoryModel {
       name: string;
       email: string;
       username: string | null;
+      image: string | null;
     }>
   > {
     return new Promise(resolve => {
@@ -28,6 +30,7 @@ class UserRepositoryMock implements UserRepositoryModel {
             name: userExists.name,
             email: userExists.email,
             username: userExists.username,
+            image: userExists.image,
           },
         });
       } else {
@@ -45,6 +48,7 @@ class UserRepositoryMock implements UserRepositoryModel {
       name: string;
       email: string;
       username: string | null;
+      image: string | null;
     }>
   > {
     return new Promise(resolve => {
@@ -57,6 +61,7 @@ class UserRepositoryMock implements UserRepositoryModel {
             name: user.name,
             email: user.email,
             username: user.username,
+            image: user.image,
           },
         });
       } else {
@@ -73,6 +78,7 @@ class UserRepositoryMock implements UserRepositoryModel {
       name: string;
       email: string;
       username: string | null;
+      image: string | null;
     }>
   > {
     return new Promise(resolve => {
@@ -85,6 +91,7 @@ class UserRepositoryMock implements UserRepositoryModel {
             name: user.name,
             email: user.email,
             username: user.username,
+            image: user.image,
           },
         });
       } else {
@@ -105,9 +112,16 @@ class UserRepositoryMock implements UserRepositoryModel {
       name: string;
       email: string;
       username: string | null;
+      image: string | null;
     }>
   > {
     return new Promise(resolve => {
+      if (!z.string().email().safeParse(user.email).success) {
+        resolve({
+          status: 400,
+          message: "Invalid Email",
+        });
+      }
       if (this.users.find(u => u.email === user.email)) {
         resolve({
           status: 400,
@@ -131,6 +145,7 @@ class UserRepositoryMock implements UserRepositoryModel {
           name: newUser.name,
           email: newUser.email,
           username: newUser.username,
+          image: newUser.image,
         },
       });
     });
@@ -181,6 +196,7 @@ class UserRepositoryMock implements UserRepositoryModel {
       name: string;
       email: string;
       username: string | null;
+      image: string | null;
     }>
   > {
     const userExists = this.users.find(u => u.id === userId);
@@ -202,6 +218,7 @@ class UserRepositoryMock implements UserRepositoryModel {
           name: updatedUser.name,
           email: updatedUser.email,
           username: updatedUser.username,
+          image: updatedUser.image,
         },
       };
     } else {
@@ -236,6 +253,7 @@ describe("Credentials Manager", () => {
       name: "John Doe",
       email: "john@doe.dev",
       username: null,
+      image: null,
     });
   });
 
@@ -253,6 +271,16 @@ describe("Credentials Manager", () => {
     });
     expect(result.status).toBe(400);
     expect(result.message).toBe("User with this Email already exists");
+  });
+  it("createUser - Should not be able to Create a User with an invalid", async () => {
+    const { sut, userRepository } = makeSUT();
+    const result = await sut.createUser({
+      name: "John Doe",
+      email: "john@doe.",
+      password: "12345",
+    });
+    expect(result.status).toBe(400);
+    expect(result.message).toBe("Invalid Email");
   });
 
   it("loginUser - Should return 'Invalid Username or Password' if the user does not exist", async () => {
