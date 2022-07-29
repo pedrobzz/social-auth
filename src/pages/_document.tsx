@@ -21,15 +21,3 @@ export default function Document(): JSX.Element {
     </Html>
   );
 }
-
-declare module "next-auth" {
-  /**
-   * Returned by `useSession`, `getSession` and received as a prop on the `SessionProvider` React Context
-   */
-  interface Session {
-    user: User & {
-      id: string;
-      username?: string;
-    };
-  }
-}
