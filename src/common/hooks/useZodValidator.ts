@@ -34,24 +34,26 @@ export const useZodValidator = <T extends string = string>(
   fields: Record<T, ZodPrimitives | ZodEffects<ZodPrimitives, string, string>>,
 ): {
   errors: Partial<Record<T, string[]>>;
-  validate: (data: Record<T, unknown>) => Promise<void>;
+  validate: (data: Record<T, unknown>) => Promise<Partial<Record<T, string[]>>>;
   resetError: (field: T) => void;
 } => {
   const [errors, setErrors] = useState<Partial<Record<T, string[]>>>({});
   const formObject = z.object(fields).strict();
   const validate = async (obj: Record<T, unknown>) => {
+    console.log("validating");
     try {
-      await formObject.parseAsync(obj);
+      await formObject.parseAsync(obj, {});
       setErrors({});
+      return {};
     } catch (err) {
       if (err instanceof ZodError) {
         console.log(err.flatten().fieldErrors);
         setErrors(err.flatten().fieldErrors as Record<T, string[]>);
+        return err.flatten().fieldErrors as Record<T, string[]>;
       } else {
         throw err;
       }
     }
-    return Promise.resolve();
   };
   const resetError = (field: T) => {
     setErrors(errors => ({ ...errors, [field]: undefined }));
