@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import {
   z,
   ZodString,
@@ -34,6 +34,7 @@ export const useZodValidator = <T extends string = string>(
   fields: Record<T, ZodPrimitives | ZodEffects<ZodPrimitives, string, string>>,
 ): {
   errors: Partial<Record<T, string[]>>;
+  setErrors: Dispatch<SetStateAction<Partial<Record<T, string[]>>>>;
   validate: (data: Record<T, unknown>) => Promise<Partial<Record<T, string[]>>>;
   resetError: (field: T) => void;
 } => {
@@ -58,5 +59,5 @@ export const useZodValidator = <T extends string = string>(
   const resetError = (field: T) => {
     setErrors(errors => ({ ...errors, [field]: undefined }));
   };
-  return { errors, validate, resetError };
+  return { errors, validate, resetError, setErrors };
 };
