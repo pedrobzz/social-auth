@@ -16,11 +16,15 @@ export const authOptions: NextAuthOptions = {
     jwt: async ({ token, user, account, profile, isNewUser }) => {
       if (user) {
         token.id = user.id;
+        token.image = user.image;
+        token.username = user.username;
       }
       return Promise.resolve(token);
     },
     session: async ({ session, token }) => {
       session.user.id = token.id as string;
+      session.user.image = token.image as string;
+      session.user.username = (token.username as string) || "";
       return Promise.resolve(session);
     },
   },
@@ -55,7 +59,6 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (userResponse.status === 200 && userResponse.data) {
-          console.log(userResponse.data);
           return {
             name: userResponse.data.name,
             email: userResponse.data.email,
@@ -90,6 +93,7 @@ declare module "next-auth" {
     user: User & {
       id: string;
       username?: string;
+      image?: string;
     };
   }
 }
