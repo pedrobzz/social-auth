@@ -8,6 +8,7 @@ const Input = ({
   required,
   type,
   error,
+  onBlur,
 }: {
   name: string;
   className?: string;
@@ -16,6 +17,7 @@ const Input = ({
   required?: boolean;
   type?: InputHTMLAttributes<HTMLInputElement>["type"];
   error?: string;
+  onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
 }): JSX.Element => {
   const [isFocused, setFocused] = useState(false);
   const [value, setValue] = useState("");
@@ -41,7 +43,10 @@ const Input = ({
           inputProps?.className
         } ${error ? "border-red-600" : ""}`}
         onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
+        onBlur={e => {
+          onBlur && onBlur(e);
+          setFocused(false);
+        }}
         placeholder=""
         required={required}
         type={type}
