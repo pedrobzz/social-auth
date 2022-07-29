@@ -1,6 +1,7 @@
 import * as trpc from "@trpc/server";
 import { z } from "zod";
 import { makeCredentialsManager } from "../factories/makeCredentialsManager";
+import { makeUserRepository } from "../factories/makeUserRepository";
 
 export const userRouter = trpc
   .router()
@@ -25,5 +26,13 @@ export const userRouter = trpc
       const { id, username } = input;
       const credentialsManager = makeCredentialsManager();
       return credentialsManager.changeUsername({ id, newUsername: username });
+    },
+  })
+  .mutation("getUserByUsername", {
+    input: z.object({ username: z.string() }),
+    async resolve({ input }) {
+      const userRepository = makeUserRepository();
+      console.log("Chegou");
+      return await userRepository.getUserByUsername(input.username);
     },
   });
