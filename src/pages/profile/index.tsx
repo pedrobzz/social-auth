@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import React, { useEffect, useReducer, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { GetServerSideProps } from "next";
 import { unstable_getServerSession } from "next-auth";
@@ -62,7 +62,7 @@ const Profile = (): JSX.Element => {
             Go to your profile
           </Link>
         )}
-        {isOpen && (
+        {isOpen && !session.user.username && (
           <Modal
             handleClose={() => {
               return;
@@ -94,7 +94,6 @@ const Profile = (): JSX.Element => {
                   setFormLoading(false);
                   if (response.status === 200) {
                     session.user.username = username;
-                    console.log(session);
                     closeModal();
                     return router.push(`/profile/${username}`);
                   } else {
@@ -141,8 +140,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
   }
   if (session.user.username) {
     context.res.statusCode = 302;
-    const redirectUrl = encodeURIComponent("/profile");
-    context.res.setHeader("Location", `/signin?redirect=${redirectUrl}`);
+    context.res.setHeader("Location", `/profile/${session.user.username}`);
     return { props: {} };
   }
   return { props: {} };
