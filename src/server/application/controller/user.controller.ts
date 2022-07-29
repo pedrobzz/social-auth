@@ -32,7 +32,6 @@ export const userRouter = trpc
     input: z.object({ username: z.string() }),
     async resolve({ input }) {
       const userRepository = makeUserRepository();
-      console.log("Chegou");
       return await userRepository.getUserByUsername(input.username);
     },
   });

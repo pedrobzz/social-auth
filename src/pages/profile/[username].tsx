@@ -24,6 +24,7 @@ const profile = ({
   if (!user) {
     return <h1>404</h1>;
   }
+  const { user: currentUser } = session;
   return (
     <div>
       <h1>{user.name}</h1>
@@ -49,7 +50,6 @@ export const getServerSideProps: GetServerSideProps = async context => {
       : "",
   );
   const userData = userResponse.data;
-  console.log(userData);
   return {
     props: {
       session,
