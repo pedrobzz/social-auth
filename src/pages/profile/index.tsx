@@ -1,14 +1,17 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useReducer, useState } from "react";
 
 import { GetServerSideProps } from "next";
 import { unstable_getServerSession } from "next-auth";
-import { authOptions } from "./api/auth/[...nextauth]";
+import { authOptions } from "../api/auth/[...nextauth]";
 import { useSession } from "next-auth/react";
-import Modal from "../common/components/Modal";
-import { Input } from "../common/components/form";
-import { useTRPC } from "../common/hooks";
-import toast from "react-hot-toast";
+import Modal from "../../common/components/Modal";
+import { Input } from "../../common/components/form";
+import { useTRPC, useZodValidator } from "../../common/hooks";
+import { z } from "zod";
+import SubmitButton from "../../common/components/form/SubmitButton";
+import { useRouter } from "next/router";
+import Link from "next/link";
 
 const useModal = (): { isOpen; openModal; closeModal } => {
   const [isOpen, setIsOpen] = useState(false);
@@ -19,8 +22,27 @@ const useModal = (): { isOpen; openModal; closeModal } => {
 
 const Profile = (): JSX.Element => {
   const { data: session, status } = useSession();
+  const router = useRouter();
   const { isOpen, closeModal, openModal } = useModal();
   const [formLoading, setFormLoading] = useState(false);
+  const { validate, errors, resetError, setErrors } =
+    useZodValidator<"username">({
+      username: z
+        .string()
+        .min(3)
+        .max(20)
+        .refine(
+          value =>
+            !value ||
+            (/^[a-zA-Z0-9_]+$/.test(value) &&
+              /^[a-zA-Z]/.test(value.charAt(0))),
+          {
+            message:
+              "Username should start with a letter and only contain letters, numbers, and underscores",
+          },
+        )
+        .innerType(),
+    });
   const [username, setUsername] = useState("");
   const trpc = useTRPC();
   const changeUsernameMutation = trpc.useMutation("user.updateUsername");
@@ -35,10 +57,11 @@ const Profile = (): JSX.Element => {
   return (
     <div className="w-screen h-screen bg-zinc-800 flex flex-col justify-center items-center">
       <div>
-        <h1>Profile</h1>
-        <h3>{session.user.name}</h3>
-        <h3>{session.user.email}</h3>
-        <h3>{session.user.username}</h3>
+        {session.user.username && (
+          <Link href={`/profile/${session.user.username}`}>
+            Go to your profile
+          </Link>
+        )}
         {isOpen && (
           <Modal
             handleClose={() => {
@@ -55,9 +78,15 @@ const Profile = (): JSX.Element => {
               <hr className="w-full h-2 my-2 opacity-25" />
               <form
                 className="w-[80%]"
+                noValidate
                 onSubmit={async e => {
                   e.preventDefault();
                   setFormLoading(true);
+                  const validation = await validate({ username });
+                  if (Object.keys(validation).length > 0) {
+                    setFormLoading(false);
+                    return;
+                  }
                   const response = await changeUsernameMutation.mutateAsync({
                     id: session.user.id,
                     username,
@@ -67,8 +96,9 @@ const Profile = (): JSX.Element => {
                     session.user.username = username;
                     console.log(session);
                     closeModal();
+                    return router.push(`/profile/${username}`);
                   } else {
-                    toast.error(response.message!);
+                    setErrors({ username: [response.message!] });
                   }
                 }}
               >
@@ -78,37 +108,14 @@ const Profile = (): JSX.Element => {
                   className="w-full"
                   inputProps={{ autoComplete: "off" }}
                   onChange={e => setUsername(e.target.value)}
+                  error={errors.username?.join(". ")}
+                  onBlur={async e =>
+                    e.target.value
+                      ? await validate({ username: e.target.value })
+                      : resetError("username")
+                  }
                 />
-                <button
-                  className={`relative px-6 py-2 mt-4 text-white bg-blue-600 rounded-lg hover:bg-blue-900 w-full disabled:opacity-25 disabled:cursor-not-allowed`}
-                  disabled={formLoading}
-                >
-                  <svg
-                    className={`absolute ${
-                      formLoading
-                        ? "animate-spin block ml-[-10px] xs:ml-0"
-                        : "hidden"
-                    }  top-0 bottom-0 mt-auto mb-auto h-5 w-5 text-white`}
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Save Username
-                </button>
+                <SubmitButton loading={formLoading}>Save Username</SubmitButton>
               </form>
             </div>
           </Modal>
@@ -127,6 +134,12 @@ export const getServerSideProps: GetServerSideProps = async context => {
     authOptions,
   );
   if (!session) {
+    context.res.statusCode = 302;
+    const redirectUrl = encodeURIComponent("/profile");
+    context.res.setHeader("Location", `/signin?redirect=${redirectUrl}`);
+    return { props: {} };
+  }
+  if (session.user.username) {
     context.res.statusCode = 302;
     const redirectUrl = encodeURIComponent("/profile");
     context.res.setHeader("Location", `/signin?redirect=${redirectUrl}`);
