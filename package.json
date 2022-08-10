@@ -18,7 +18,7 @@
     "argon2": "^0.28.7",
     "autoprefixer": "^10.4.7",
     "next": "latest",
-    "next-auth": "^4.10.2",
+    "next-auth": "^4.10.3",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-hot-toast": "^2.3.0",
